@@ -15,22 +15,21 @@ import ruleta from "./assets/ruleta.jpg"
 const encodeMap = { "0": "o", "1": "i", "2": "z", "3": "e", "4": "a", "5": "s", "7": "t" }
 const decodeMap = { o: "0", i: "1", z: "2", e: "3", a: "4", s: "5", t: "7" }
 
-// Función para decodificar el número de la URL
+// Decodificar número codificado
 function decodePhone(encoded) {
   if (!encoded) return null
   return encoded.replace(/[oizeast]/g, (c) => decodeMap[c] || c)
 }
 
-// Función para obtener el número de la URL
-function getPhoneFromQuery() {
-  const params = new URLSearchParams(window.location.search)
-  const raw = params.get("phone")
-  return decodePhone(raw)
+// Obtener número desde el path de la URL
+function getPhoneFromPath() {
+  const path = window.location.pathname.slice(1) // elimina "/"
+  return decodePhone(path)
 }
 
-const DEFAULT_WHATSAPP = "34607336245"
+const DEFAULT_WHATSAPP = "5493425974668" // Número por defecto
 
-// Función para abrir WhatsApp
+// Abrir WhatsApp
 function openWhatsapp(phone, platform) {
   const target = phone || DEFAULT_WHATSAPP
   const text = `Quiero reclamar mi doble bono 30% en ${platform}`
@@ -42,7 +41,7 @@ function App() {
   const [open, setOpen] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState(null)
 
-  const phoneFromUrl = getPhoneFromQuery()
+  const phoneFromUrl = getPhoneFromPath()
 
   const items = [
     { id: 1, src: bet30, alt: "Bet30" },
