@@ -1,5 +1,5 @@
 import "./index.css"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Icon } from "@iconify/react"
 
@@ -21,13 +21,12 @@ function decodePhone(encoded) {
   return encoded.replace(/[oizeast]/g, (c) => decodeMap[c] || c)
 }
 
-// Obtener número desde el path de la URL
-function getPhoneFromPath() {
-  const path = window.location.pathname.slice(1) // elimina "/"
-  return decodePhone(path)
+// Leer path codificado (sin el leading "/")
+function getEncodedFromPath() {
+  return window.location.pathname.slice(1) || null
 }
 
-const DEFAULT_WHATSAPP = "5493425974668" // Número por defecto
+const DEFAULT_WHATSAPP = "34607336245"
 
 // Abrir WhatsApp
 function openWhatsapp(phone, platform) {
@@ -40,8 +39,64 @@ function openWhatsapp(phone, platform) {
 function App() {
   const [open, setOpen] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState(null)
+  const [approvedSet, setApprovedSet] = useState(null) // Set de tokens aprobados
+  const [phoneFromUrl, setPhoneFromUrl] = useState(null)
+  const [loadingApproved, setLoadingApproved] = useState(true)
+  const [invalidToken, setInvalidToken] = useState(false)
 
-  const phoneFromUrl = getPhoneFromPath()
+  useEffect(() => {
+    // Cargar approved.json desde public/approved.json
+    let mounted = true
+    fetch("/approved.json", { cache: "no-cache" })
+      .then((r) => {
+        if (!r.ok) throw new Error("failed to load approved list")
+        return r.json()
+      })
+      .then((json) => {
+        if (!mounted) return
+        const arr = Array.isArray(json.approved) ? json.approved : []
+        setApprovedSet(new Set(arr))
+      })
+      .catch(() => {
+        // si falla el fetch, dejamos approvedSet = null (fallback a DEFAULT)
+        setApprovedSet(null)
+      })
+      .finally(() => mounted && setLoadingApproved(false))
+    return () => { mounted = false }
+  }, [])
+
+  useEffect(() => {
+    // Una vez cargada la lista aprobada, extraemos y validamos el token en la URL
+    if (loadingApproved) return
+
+    const encoded = getEncodedFromPath() // ejemplo "+sa9e6zazaa6t6"
+    if (!encoded) {
+      setPhoneFromUrl(null)
+      setInvalidToken(false)
+      return
+    }
+
+    // si tenemos lista aprobada, validar que el token exista en ella
+    if (approvedSet instanceof Set) {
+      if (!approvedSet.has(encoded)) {
+        setInvalidToken(true)
+        setPhoneFromUrl(null)
+        return
+      }
+    }
+
+    // decodificar y sanitizar (quitar todo excepto dígitos y +)
+    const decoded = decodePhone(encoded)
+    const sanitized = decoded ? decoded.replace(/[^\d+]/g, "") : null
+    // validación simple de longitud
+    if (sanitized && sanitized.replace(/\D/g, "").length >= 8 && sanitized.replace(/\D/g, "").length <= 15) {
+      setPhoneFromUrl(sanitized.replace(/^\+/, "")) // wa.me requiere sin +
+      setInvalidToken(false)
+    } else {
+      setPhoneFromUrl(null)
+      setInvalidToken(true)
+    }
+  }, [approvedSet, loadingApproved])
 
   const items = [
     { id: 1, src: bet30, alt: "Bet30" },
@@ -53,10 +108,17 @@ function App() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4">
+    <div className="min-h-screen bg-black p-4">
       <h1 className="text-center text-2xl font-bold text-white mb-8">
         Nuestras Plataformas
       </h1>
+
+      {/* Indicador token inválido */}
+      {(!loadingApproved && invalidToken) && (
+        <div className="mb-4 text-center text-sm text-red-400">
+          Token en URL no aprobado. Se usará el número por defecto.
+        </div>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-2 gap-4">
@@ -68,20 +130,14 @@ function App() {
             whileTap={{ scale: 0.97 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.06 }}
             onClick={() => {
               setSelectedPlatform(item.alt)
               setOpen(true)
             }}
           >
-            <img
-              src={item.src}
-              alt={item.alt}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-2 text-center text-white text-sm font-medium">
-              {item.alt}
-            </div>
+            <img src={item.src} alt={item.alt} className="w-full h-48 object-cover" />
+            <div className="p-2 text-center text-white text-sm font-medium">{item.alt}</div>
           </motion.button>
         ))}
       </div>
@@ -102,41 +158,23 @@ function App() {
               exit={{ scale: 0.8, opacity: 0 }}
             >
               {/* Imagen de fondo con opacidad */}
-              <div
-                className="absolute inset-0 bg-center bg-cover opacity-30"
-                style={{ backgroundImage: `url(${ruleta})` }}
-              ></div>
+              <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{ backgroundImage: `url(${ruleta})` }}></div>
 
-              {/* Degradado overlay */}
+              {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60"></div>
 
               {/* Contenido */}
               <div className="relative z-10">
-                {/* Botón cerrar */}
-                <button
-                  onClick={() => setOpen(false)}
-                  className="absolute -top-5 -right-5 text-yellow-400 text-2xl font-bold hover:text-yellow-300 cursor-pointer"
-                >
-                  ✕
-                </button>
+                <button onClick={() => setOpen(false)} className="absolute -top-5 -right-5 text-yellow-400 text-2xl font-bold hover:text-yellow-300 cursor-pointer">✕</button>
 
-                {/* Texto */}
-                <h2 className="text-xl font-bold text-yellow-400 mb-4 drop-shadow-lg">
-                  🎰 Reclamar doble bono
-                </h2>
-                <p className="text-yellow-300 font-semibold mb-8 drop-shadow-md">
-                  30% en tu primer y segunda recarga
-                </p>
+                <h2 className="text-xl font-bold text-yellow-400 mb-4 drop-shadow-lg">🎰 Reclamar doble bono</h2>
+                <p className="text-yellow-300 font-semibold mb-8 drop-shadow-md">30% en tu primer y segunda recarga</p>
 
-                {/* Botón estilo WhatsApp */}
                 <button
                   onClick={() => openWhatsapp(phoneFromUrl, selectedPlatform)}
                   className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b955] text-white font-bold py-3 px-6 rounded-full shadow-lg shadow-green-700/50 transition cursor-pointer w-full"
                 >
-                  <Icon
-                    icon="ic:baseline-whatsapp"
-                    className="text-white text-2xl"
-                  />
+                  <Icon icon="ic:baseline-whatsapp" className="text-white text-2xl" />
                   Reclamar por WhatsApp
                 </button>
               </div>
