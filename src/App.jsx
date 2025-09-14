@@ -26,7 +26,7 @@ function getEncodedFromPath() {
   return window.location.pathname.slice(1) || null
 }
 
-const DEFAULT_WHATSAPP = "34607336245"
+const DEFAULT_WHATSAPP = "5493425974668"
 
 // Abrir WhatsApp
 function openWhatsapp(phone, platform) {
