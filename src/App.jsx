@@ -116,7 +116,7 @@ function App() {
       {/* Indicador token inválido */}
       {(!loadingApproved && invalidToken) && (
         <div className="mb-4 text-center text-sm text-red-400">
-          Token en URL no aprobado. Se usará el número por defecto.
+          
         </div>
       )}
 
