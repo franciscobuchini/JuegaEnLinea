@@ -11,26 +11,25 @@ import eljoker from "./assets/eljoker.png"
 import celuapuestas from "./assets/celuapuestas.png"
 import ruleta from "./assets/ruleta.jpg"
 
-// Mapa de codificación/decodificación
-const encodeMap = { "0": "o", "1": "i", "2": "z", "3": "e", "4": "a", "5": "s", "7": "t" }
-const decodeMap = { o: "0", i: "1", z: "2", e: "3", a: "4", s: "5", t: "7" }
-
-// Decodificar número codificado
-function decodePhone(encoded) {
-  if (!encoded) return null
-  return encoded.replace(/[oizeast]/g, (c) => decodeMap[c] || c)
-}
-
-// Leer path codificado (sin el leading "/")
-function getEncodedFromPath() {
+// Leer token desde path (sin leading slash)
+function getTokenFromPath() {
   return window.location.pathname.slice(1) || null
 }
 
-const DEFAULT_WHATSAPP = "5493425974668"
+// Sanitiza y valida string numérico: devuelve digits or null
+function sanitizeDigits(raw) {
+  if (!raw) return null
+  const digits = raw.replace(/\D/g, "")
+  if (!digits) return null
+  if (digits.length < 8 || digits.length > 15) return null
+  return digits
+}
 
-// Abrir WhatsApp
-function openWhatsapp(phone, platform) {
-  const target = phone || DEFAULT_WHATSAPP
+const DEFAULT_WHATSAPP = "5493425974668" // número por defecto sin prefijo
+
+// Abrir WhatsApp (wa.me requiere el número sin '+')
+function openWhatsapp(phoneDigits, platform) {
+  const target = phoneDigits || DEFAULT_WHATSAPP
   const text = `Quiero reclamar mi doble bono 30% en ${platform}`
   const url = `https://wa.me/${target}?text=${encodeURIComponent(text)}`
   window.open(url, "_blank")
@@ -39,17 +38,15 @@ function openWhatsapp(phone, platform) {
 function App() {
   const [open, setOpen] = useState(false)
   const [selectedPlatform, setSelectedPlatform] = useState(null)
-  const [approvedSet, setApprovedSet] = useState(null) // Set de tokens aprobados
+  const [approvedSet, setApprovedSet] = useState(null)
   const [phoneFromUrl, setPhoneFromUrl] = useState(null)
   const [loadingApproved, setLoadingApproved] = useState(true)
-  const [invalidToken, setInvalidToken] = useState(false)
 
   useEffect(() => {
-    // Cargar approved.json desde public/approved.json
     let mounted = true
     fetch("/approved.json", { cache: "no-cache" })
       .then((r) => {
-        if (!r.ok) throw new Error("failed to load approved list")
+        if (!r.ok) throw new Error("failed to load")
         return r.json()
       })
       .then((json) => {
@@ -58,7 +55,6 @@ function App() {
         setApprovedSet(new Set(arr))
       })
       .catch(() => {
-        // si falla el fetch, dejamos approvedSet = null (fallback a DEFAULT)
         setApprovedSet(null)
       })
       .finally(() => mounted && setLoadingApproved(false))
@@ -66,36 +62,31 @@ function App() {
   }, [])
 
   useEffect(() => {
-    // Una vez cargada la lista aprobada, extraemos y validamos el token en la URL
     if (loadingApproved) return
 
-    const encoded = getEncodedFromPath() // ejemplo "+sa9e6zazaa6t6"
-    if (!encoded) {
+    const token = getTokenFromPath() // debe ser solo dígitos
+    if (!token) {
       setPhoneFromUrl(null)
-      setInvalidToken(false)
       return
     }
 
-    // si tenemos lista aprobada, validar que el token exista en ella
+    const digits = sanitizeDigits(token)
+    if (!digits) {
+      setPhoneFromUrl(null)
+      return
+    }
+
     if (approvedSet instanceof Set) {
-      if (!approvedSet.has(encoded)) {
-        setInvalidToken(true)
+      if (!approvedSet.has(digits)) {
         setPhoneFromUrl(null)
         return
       }
+      setPhoneFromUrl(digits)
+      return
     }
 
-    // decodificar y sanitizar (quitar todo excepto dígitos y +)
-    const decoded = decodePhone(encoded)
-    const sanitized = decoded ? decoded.replace(/[^\d+]/g, "") : null
-    // validación simple de longitud
-    if (sanitized && sanitized.replace(/\D/g, "").length >= 8 && sanitized.replace(/\D/g, "").length <= 15) {
-      setPhoneFromUrl(sanitized.replace(/^\+/, "")) // wa.me requiere sin +
-      setInvalidToken(false)
-    } else {
-      setPhoneFromUrl(null)
-      setInvalidToken(true)
-    }
+    // Si approved.json no está disponible, fallback: usar default
+    setPhoneFromUrl(null)
   }, [approvedSet, loadingApproved])
 
   const items = [
@@ -113,14 +104,6 @@ function App() {
         Nuestras Plataformas
       </h1>
 
-      {/* Indicador token inválido */}
-      {(!loadingApproved && invalidToken) && (
-        <div className="mb-4 text-center text-sm text-red-400">
-          
-        </div>
-      )}
-
-      {/* Grid */}
       <div className="grid grid-cols-2 gap-4">
         {items.map((item, index) => (
           <motion.button
@@ -142,7 +125,6 @@ function App() {
         ))}
       </div>
 
-      {/* Modal */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -157,13 +139,9 @@ function App() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
             >
-              {/* Imagen de fondo con opacidad */}
               <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{ backgroundImage: `url(${ruleta})` }}></div>
-
-              {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60"></div>
 
-              {/* Contenido */}
               <div className="relative z-10">
                 <button onClick={() => setOpen(false)} className="absolute -top-5 -right-5 text-yellow-400 text-2xl font-bold hover:text-yellow-300 cursor-pointer">✕</button>
 
