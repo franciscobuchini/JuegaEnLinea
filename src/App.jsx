@@ -99,68 +99,87 @@ function App() {
   ]
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <h1 className="text-center text-2xl font-bold text-white mb-8">
-        Nuestras Plataformas
-      </h1>
+<div className="min-h-screen bg-black p-4">
+  <h1 className="text-center text-2xl md:text-4xl font-bold text-white mb-8">
+    Nuestras Plataformas
+  </h1>
 
-      <div className="grid grid-cols-2 gap-4">
-        {items.map((item, index) => (
-          <motion.button
-            key={item.id}
-            className="rounded-xl overflow-hidden shadow-md bg-gray-800 cursor-pointer"
-            whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.97 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.06 }}
-            onClick={() => {
-              setSelectedPlatform(item.alt)
-              setOpen(true)
-            }}
-          >
-            <img src={item.src} alt={item.alt} className="w-full h-48 object-cover" />
-            <div className="p-2 text-center text-white text-sm font-medium">{item.alt}</div>
-          </motion.button>
-        ))}
-      </div>
+  {/* Grid responsive: 2 cols en móvil, 3-4 cols en desktop */}
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+    {items.map((item, index) => (
+      <motion.button
+        key={item.id}
+        className="rounded-xl overflow-hidden shadow-md bg-gray-800 cursor-pointer"
+        whileHover={{ scale: 1.05, y: -4 }}
+        whileTap={{ scale: 0.97 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.06 }}
+        onClick={() => {
+          setSelectedPlatform(item.alt)
+          setOpen(true)
+        }}
+      >
+        <img
+          src={item.src}
+          alt={item.alt}
+          className="w-full h-48 md:h-60 lg:h-64 object-cover"
+        />
+        <div className="p-2 text-center text-white text-sm md:text-base font-medium">
+          {item.alt}
+        </div>
+      </motion.button>
+    ))}
+  </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="relative rounded-2xl shadow-2xl w-96 p-8 text-center border-4 border-yellow-500 overflow-hidden"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+  <AnimatePresence>
+    {open && (
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="relative rounded-2xl shadow-2xl w-full max-w-xl md:max-w-2xl lg:max-w-3xl p-8 text-center border-4 border-yellow-500 overflow-hidden"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+        >
+          <div
+            className="absolute inset-0 bg-center bg-cover opacity-30"
+            style={{ backgroundImage: `url(${ruleta})` }}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60"></div>
+
+          <div className="relative z-10">
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute -top-5 -right-5 text-yellow-400 text-3xl md:text-4xl font-bold hover:text-yellow-300 cursor-pointer"
             >
-              <div className="absolute inset-0 bg-center bg-cover opacity-30" style={{ backgroundImage: `url(${ruleta})` }}></div>
-              <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60"></div>
+              ✕
+            </button>
 
-              <div className="relative z-10">
-                <button onClick={() => setOpen(false)} className="absolute -top-5 -right-5 text-yellow-400 text-2xl font-bold hover:text-yellow-300 cursor-pointer">✕</button>
+            <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-4 drop-shadow-lg">
+              🎰 Reclamar doble bono
+            </h2>
+            <p className="text-yellow-300 font-semibold mb-8 md:text-lg drop-shadow-md">
+              30% en tu primer y segunda recarga
+            </p>
 
-                <h2 className="text-xl font-bold text-yellow-400 mb-4 drop-shadow-lg">🎰 Reclamar doble bono</h2>
-                <p className="text-yellow-300 font-semibold mb-8 drop-shadow-md">30% en tu primer y segunda recarga</p>
-
-                <button
-                  onClick={() => openWhatsapp(phoneFromUrl, selectedPlatform)}
-                  className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b955] text-white font-bold py-3 px-6 rounded-full shadow-lg shadow-green-700/50 transition cursor-pointer w-full"
-                >
-                  <Icon icon="ic:baseline-whatsapp" className="text-white text-2xl" />
-                  Reclamar por WhatsApp
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            <button
+              onClick={() => openWhatsapp(phoneFromUrl, selectedPlatform)}
+              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b955] text-white font-bold py-3 px-6 md:py-4 md:px-8 rounded-full shadow-lg shadow-green-700/50 transition cursor-pointer w-full"
+            >
+              <Icon icon="ic:baseline-whatsapp" className="text-white text-2xl md:text-3xl" />
+              Reclamar por WhatsApp
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
   )
 }
 
