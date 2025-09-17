@@ -89,14 +89,14 @@ function App() {
     setPhoneFromUrl(null)
   }, [approvedSet, loadingApproved])
 
-  const items = [
-    { id: 1, src: bet30, alt: "Bet30" },
-    { id: 2, src: ganaencasa, alt: "Gana en Casa" },
-    { id: 3, src: ganamos, alt: "Ganamos" },
-    { id: 4, src: zeus, alt: "Zeus" },
-    { id: 5, src: eljoker, alt: "El Joker" },
-    { id: 6, src: celuapuestas, alt: "Celu Apuestas" },
-  ]
+const items = [
+  { id: 1, src: bet30, alt: "Bet30", url: "https://www.bet30.gold/" },
+  { id: 2, src: ganaencasa, alt: "Gana en Casa", url: "https://ganaencasa24.com" },
+  { id: 3, src: ganamos, alt: "Ganamos", url: "https://ganamosnet.com" },
+  { id: 4, src: zeus, alt: "Zeus", url: "https://casinozeus26.com" },
+  { id: 5, src: eljoker, alt: "El Joker", url: "https://eljoker.vip" },
+  { id: 6, src: celuapuestas, alt: "Celu Apuestas", url: "https://celuapuestas24.ws" },
+]
 
   return (
 <div className="min-h-screen bg-black p-4">
@@ -166,14 +166,22 @@ function App() {
             <p className="text-yellow-300 font-semibold mb-8 md:text-lg drop-shadow-md">
               30% en tu primer y segunda recarga
             </p>
-
-            <button
-              onClick={() => openWhatsapp(phoneFromUrl, selectedPlatform)}
-              className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b955] text-white font-bold py-3 px-6 md:py-4 md:px-8 rounded-full shadow-lg shadow-green-700/50 transition cursor-pointer w-full"
-            >
-              <Icon icon="ic:baseline-whatsapp" className="text-white text-2xl md:text-3xl" />
-              Reclamar por WhatsApp
-            </button>
+            <div className="flex gap-4 flex-col md:flex-row">            
+              <button
+                onClick={() => openWhatsapp(phoneFromUrl, selectedPlatform)}
+                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 md:py-4 md:px-8 rounded-full cursor-pointer w-full"
+              >
+                <Icon icon="ic:baseline-whatsapp" className="text-white text-2xl md:text-3xl" />
+                Reclamar por WhatsApp
+              </button>
+              <button
+                onClick={() => selectedPlatform && window.open(items.find(i => i.alt === selectedPlatform)?.url, "_blank")}
+                className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 md:py-4 md:px-8 rounded-full cursor-pointer w-full"
+              >
+                <Icon icon="mdi:web" className="text-white text-2xl md:text-3xl" />
+                Ya tengo fichas, ir a jugar!
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
