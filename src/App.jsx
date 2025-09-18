@@ -101,7 +101,7 @@ const items = [
   return (
 <div className="min-h-screen bg-black p-4">
   <h1 className="text-center text-2xl md:text-4xl font-bold text-white mb-8">
-    Nuestras Plataformas
+    Bienvenidos a la red de ganadores mas grande de Argentina 🎉
   </h1>
 
   {/* Grid responsive: 2 cols en móvil, 3-4 cols en desktop */}
@@ -161,7 +161,7 @@ const items = [
             </button>
 
             <h2 className="text-xl md:text-2xl font-bold text-yellow-400 mb-4 drop-shadow-lg">
-              🎰 Reclamar doble bono
+              Reclamar bono doble:
             </h2>
             <p className="text-yellow-300 font-semibold mb-8 md:text-lg drop-shadow-md">
               30% en tu primer y segunda recarga
